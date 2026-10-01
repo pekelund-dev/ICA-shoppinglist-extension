@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <title>ICA-inköpslista – Inställningar</title>
+  <style>
+    body { font: 14px/1.5 system-ui, sans-serif; max-width: 560px; margin: 24px auto; color: #3a3a38; }
+    h1 { color: #e3000b; font-size: 20px; }
+    label { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0; }
+    .hint { color: #777; font-size: 12px; display: block; }
+    #saved { color: #0a8a3a; }
+  </style>
+</head>
+<body>
+  <h1>Inställningar</h1>
+  <form id="settings">
+    <label>
+      <input type="checkbox" name="includeChecked">
+      <span>Ta med redan handlade (avbockade) varor när listorna hämtas
+        <span class="hint">Avbockade varor används inte för att slå ihop mängder.</span></span>
+    </label>
+    <label>
+      <input type="checkbox" name="mergeQuantities">
+      <span>Uppdatera mängden på varor som redan finns i listan
+        <span class="hint">Annars läggs varan alltid till som en ny rad.</span></span>
+    </label>
+    <label>
+      <input type="checkbox" name="autoSyncOnPageOpen">
+      <span>Hämta alla listor automatiskt när inköpslistorna öppnas på ica.se</span>
+    </label>
+    <label>
+      <input type="checkbox" name="openIcaTabIfMissing">
+      <span>Öppna inköpslistorna på ica.se i en ny flik om ingen är öppen</span>
+    </label>
+  </form>
+  <p id="saved"></p>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

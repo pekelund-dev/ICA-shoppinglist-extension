@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <title>ICA-inköpslista</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1>ICA-inköpslista</h1>
+    <span id="login-status" class="status">…</span>
+  </header>
+
+  <section>
+    <label for="target-list">Lägg till i lista</label>
+    <div class="row">
+      <select id="target-list"></select>
+      <button id="sync" type="button" title="Hämta listor från ICA">↻</button>
+    </div>
+    <p id="sync-status" class="hint"></p>
+  </section>
+
+  <section>
+    <label for="text">Varor (en per rad)</label>
+    <textarea id="text" rows="7" placeholder="2 dl mjölk&#10;3 ägg&#10;1 burk krossade tomater"></textarea>
+    <ul id="preview"></ul>
+    <div class="row">
+      <button id="grab" type="button">Hämta markering</button>
+      <button id="send" type="button" class="primary">Skicka till ICA</button>
+    </div>
+    <p id="result" class="hint"></p>
+  </section>
+
+  <footer>
+    <span class="hint">Kortkommando: <span id="shortcut">Alt+Shift+I</span></span>
+    <a href="#" id="open-options">Inställningar</a>
+  </footer>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "ica-shoppinglist-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Chrome extension for adding items to your ICA shopping list.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

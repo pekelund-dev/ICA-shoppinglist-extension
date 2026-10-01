@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "ICA-inköpslista",
+  "description": "Markera varor på valfri sida och lägg till dem i din ICA-inköpslista.",
+  "version": "0.1.0",
+  "minimum_chrome_version": "102",
+  "permissions": ["storage", "contextMenus", "scripting", "activeTab", "webRequest"],
+  "host_permissions": ["https://*.ica.se/*"],
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "ICA-inköpslista",
+    "default_popup": "src/popup/popup.html"
+  },
+  "options_page": "src/options/options.html",
+  "commands": {
+    "send-selection": {
+      "suggested_key": {
+        "default": "Alt+Shift+I",
+        "mac": "Alt+Shift+I"
+      },
+      "description": "Lägg till markerad text i ICA-inköpslistan"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.ica.se/inkopslista/*",
+        "https://www.ica.se/inkopslistor/*",
+        "https://handla.ica.se/*inkopslist*"
+      ],
+      "js": ["src/content/ica-selectors.js", "src/content/ica-content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
