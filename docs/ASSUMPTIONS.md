@@ -10,15 +10,17 @@ files so it can be fixed without touching the rest of the code:
 | URLs, URL patterns and API endpoint | [`src/lib/config.js`](../src/lib/config.js) (`ICA_CONFIG`) and `content_scripts.matches` in [`manifest.json`](../manifest.json) |
 | DOM selectors and UI timings | [`src/content/ica-selectors.js`](../src/content/ica-selectors.js) |
 
-## Login / JWT
+## Login / Authorization
 
 1. The user logs in on `ica.se` in the normal way; the extension never sees the password.
 2. After login ICA's web app calls its APIs on a `*.ica.se` host with an
-   `Authorization` header that contains the JWT as a bearer token. The extension observes these requests
-   (`chrome.webRequest.onBeforeSendHeaders`) and stores the latest token in
-   `chrome.storage.local`.
-3. The JWT contains an `exp` claim, used to show "Inloggad"/"Ej inloggad" and to
-   skip expired tokens. A 401/403 from the API clears the stored token.
+  `Authorization` header using the Bearer scheme. The credential may be an opaque
+  access token or a JWT. The extension observes these requests
+  (`chrome.webRequest.onBeforeSendHeaders`) and stores the latest token in
+  `chrome.storage.local`.
+3. JWT credentials with an `exp` claim use it to show "Inloggad"/"Ej inloggad"
+  and to skip expired tokens. Opaque tokens, or JWTs without `exp`, are treated
+  as valid until the API rejects them. A 401/403 from the API clears the stored token.
 
 If ICA instead keeps the token only in a cookie or in `localStorage`, the capture
 in `src/background.js` (`saveToken` / the `webRequest` listener) needs to change.
@@ -42,7 +44,11 @@ in `src/background.js` (`saveToken` / the `webRequest` listener) needs to change
 - If the API cannot be used, the lists are scraped from the open page with the DOM selectors
   (overview page: only list names, list page: the rows of that list).
 
-The API is only used for **reading**. All changes are made through the web UI, as requested.
+Adding rows uses the observed `POST {listBaseUrl}/{listId}/row` request with
+`{ isStriked: false, quantity: {}, text, article: null }`. The request runs in
+the ICA page context so the browser supplies the site's origin and referer.
+Updating an existing row still uses the web UI; its API contract has not yet
+been observed.
 
 ## Web UI used to add/update items
 

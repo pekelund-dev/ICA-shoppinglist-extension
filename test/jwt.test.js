@@ -9,8 +9,9 @@ test('extracts bearer tokens from request headers', () => {
   const token = makeToken({ sub: 'user' });
   const scheme = 'Bearer';
   assert.equal(extractBearerToken([{ name: 'Accept', value: '*/*' }, { name: 'authorization', value: `${scheme} ${token}` }]), token);
+  assert.equal(extractBearerToken([{ name: 'Authorization', value: 'Bearer opaque-access-token' }]), 'opaque-access-token');
   assert.equal(extractBearerToken([{ name: 'Authorization', value: 'Basic abc' }]), null);
-  assert.equal(extractBearerToken([{ name: 'Authorization', value: `${scheme} not-a-jwt` }]), null);
+  assert.equal(extractBearerToken([{ name: 'Authorization', value: 'Bearer' }]), null);
   assert.equal(extractBearerToken(undefined), null);
 });
 

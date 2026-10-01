@@ -26,7 +26,11 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.ica.se/inkopslistor/*", "https://handla.ica.se/*inkopslist*"],
+      "matches": [
+        "https://www.ica.se/inkopslista/*",
+        "https://www.ica.se/inkopslistor/*",
+        "https://handla.ica.se/*inkopslist*"
+      ],
       "js": ["src/content/ica-selectors.js", "src/content/ica-content.js"],
       "run_at": "document_idle"
     }

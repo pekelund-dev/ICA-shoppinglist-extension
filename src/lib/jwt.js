@@ -1,11 +1,11 @@
-// Helpers for the JWT that ICA's web app sends to its APIs.
+// Helpers for bearer credentials that ICA's web app sends to its APIs.
 
 /** Returns the bearer token from a list of webRequest headers, or null. */
 export function extractBearerToken(headers) {
   if (!Array.isArray(headers)) return null;
   const header = headers.find((h) => h && typeof h.name === 'string' && h.name.toLowerCase() === 'authorization');
   const match = header && typeof header.value === 'string' && header.value.match(/^Bearer\s+(\S+)$/i);
-  if (!match || !looksLikeJwt(match[1])) return null;
+  if (!match) return null;
   return match[1];
 }
 

@@ -1,5 +1,6 @@
 import { MESSAGES, STORAGE_KEYS } from '../lib/config.js';
 
+const LOG = '[ICA][popup]';
 const $ = (id) => document.getElementById(id);
 const ACTION_LABELS = { add: 'läggs till', update: 'uppdateras', skip: 'finns redan' };
 
@@ -43,9 +44,15 @@ function renderLists(state) {
 }
 
 async function refresh() {
+  console.debug(LOG, 'Refreshing popup state');
   const state = await send(MESSAGES.getState);
   renderLogin(state);
   renderLists(state);
+  console.info(LOG, 'Popup state loaded', {
+    loggedIn: Boolean(state.loggedIn),
+    listCount: state.lists && state.lists.lists ? state.lists.lists.length : 0,
+    pendingCount: state.pending || 0
+  });
   if (state.pending) setText($('result'), `${state.pending} sändning(ar) väntar på ICA-fliken.`);
   return state;
 }
@@ -54,17 +61,23 @@ let previewTimer = null;
 function schedulePreview() {
   clearTimeout(previewTimer);
   previewTimer = setTimeout(async () => {
-    const response = await send(MESSAGES.previewText, { text: $('text').value });
-    $('preview').replaceChildren(...((response && response.changes) || []).map((change) => {
-      const li = document.createElement('li');
-      const name = document.createElement('span');
-      name.textContent = change.text;
-      const action = document.createElement('span');
-      action.className = `action ${change.action}`;
-      action.textContent = ACTION_LABELS[change.action] || change.action;
-      li.append(name, action);
-      return li;
-    }));
+    try {
+      const response = await send(MESSAGES.previewText, { text: $('text').value });
+      console.debug(LOG, 'Preview updated', { changeCount: (response && response.changes || []).length });
+      $('preview').replaceChildren(...((response && response.changes) || []).map((change) => {
+        const li = document.createElement('li');
+        const name = document.createElement('span');
+        name.textContent = change.text;
+        const action = document.createElement('span');
+        action.className = `action ${change.action}`;
+        action.textContent = ACTION_LABELS[change.action] || change.action;
+        li.append(name, action);
+        return li;
+      }));
+    } catch (error) {
+      console.warn(LOG, 'Preview request failed', error.name || 'Error', error.message);
+      setText($('result'), 'Förhandsvisningen kunde inte uppdateras.', true);
+    }
   }, 200);
 }
 
@@ -76,28 +89,41 @@ async function grabSelection() {
       func: () => (window.getSelection() ? window.getSelection().toString() : '')
     });
     const text = results.map((r) => r.result).filter((t) => t && t.trim()).join('\n');
+    console.debug(LOG, 'Selection lookup complete', { found: Boolean(text), textLength: text.length });
     if (text) {
       $('text').value = text;
       schedulePreview();
     }
-  } catch {
+  } catch (error) {
     // Not allowed on this page (e.g. chrome:// pages) – the user can paste text instead.
+    console.debug(LOG, 'Selection is unavailable on the active page', error.name || 'Error');
   }
 }
 
 $('target-list').addEventListener('change', async (event) => {
-  const stored = await chrome.storage.sync.get(STORAGE_KEYS.settings);
-  const settings = { ...(stored[STORAGE_KEYS.settings] || {}), targetListId: event.target.value };
-  await chrome.storage.sync.set({ [STORAGE_KEYS.settings]: settings });
-  schedulePreview();
+  try {
+    const stored = await chrome.storage.sync.get(STORAGE_KEYS.settings);
+    const settings = { ...(stored[STORAGE_KEYS.settings] || {}), targetListId: event.target.value };
+    await chrome.storage.sync.set({ [STORAGE_KEYS.settings]: settings });
+    console.info(LOG, 'Target list setting saved');
+    schedulePreview();
+  } catch (error) {
+    console.warn(LOG, 'Could not save target list setting', error.name || 'Error', error.message);
+  }
 });
 
 $('sync').addEventListener('click', async () => {
   setText($('sync-status'), 'Hämtar listor…');
-  const response = await send(MESSAGES.syncLists);
-  if (!response.ok) setText($('sync-status'), response.error, true);
-  else await refresh();
-  schedulePreview();
+  console.info(LOG, 'Manual list sync requested');
+  try {
+    const response = await send(MESSAGES.syncLists);
+    if (!response.ok) setText($('sync-status'), response.error, true);
+    else await refresh();
+    schedulePreview();
+  } catch (error) {
+    console.warn(LOG, 'Manual list sync failed', error.name || 'Error', error.message);
+    setText($('sync-status'), 'Listorna kunde inte hämtas.', true);
+  }
 });
 
 $('text').addEventListener('input', schedulePreview);
@@ -105,8 +131,15 @@ $('grab').addEventListener('click', grabSelection);
 
 $('send').addEventListener('click', async () => {
   setText($('result'), 'Skickar…');
-  const response = await send(MESSAGES.sendText, { text: $('text').value });
-  setText($('result'), response.ok ? response.message : response.error, !response.ok);
+  console.info(LOG, 'Send requested', { inputLength: $('text').value.length });
+  try {
+    const response = await send(MESSAGES.sendText, { text: $('text').value });
+    console.info(LOG, 'Send request completed', { ok: Boolean(response && response.ok), queued: Boolean(response && response.queued) });
+    setText($('result'), response.ok ? response.message : response.error, !response.ok);
+  } catch (error) {
+    console.warn(LOG, 'Send request failed', error.name || 'Error', error.message);
+    setText($('result'), 'Skickningen misslyckades.', true);
+  }
 });
 
 $('open-options').addEventListener('click', (event) => {
@@ -119,4 +152,7 @@ chrome.commands.getAll((commands) => {
   if (command && command.shortcut) $('shortcut').textContent = command.shortcut;
 });
 
-refresh().then(grabSelection);
+refresh().then(grabSelection).catch((error) => {
+  console.warn(LOG, 'Popup initialization failed', error.name || 'Error', error.message);
+  setText($('result'), 'Tillägget kunde inte läsa sitt tillstånd.', true);
+});

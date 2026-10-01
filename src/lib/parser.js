@@ -124,7 +124,6 @@ export function parseLine(rawLine) {
   const parenthesis = line.match(/\s*\(([^)]*)\)\s*/);
   if (parenthesis) {
     note = parenthesis[1].trim() || null;
-    line = (line.slice(0, parenthesis.index) + ' ' + line.slice(parenthesis.index + parenthesis[0].length)).trim();
   }
 
   const name = line.replace(/^(?:of|av)\s+/i, '').replace(/[\s,.;:]+$/, '').trim();

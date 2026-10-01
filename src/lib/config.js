@@ -5,17 +5,22 @@
 
 export const ICA_CONFIG = {
   // Page that lists the user's shopping lists. Opened when items are sent and no ICA tab exists.
-  shoppingListPageUrl: 'https://www.ica.se/inkopslistor/',
+  shoppingListPageUrl: 'https://www.ica.se/inkopslista/',
 
   // Tab URL patterns (chrome.tabs.query) that count as "the ICA shopping list tab".
-  shoppingListTabPatterns: ['https://www.ica.se/inkopslistor/*', 'https://handla.ica.se/*inkopslist*'],
+  shoppingListTabPatterns: [
+    'https://www.ica.se/inkopslista/*',
+    'https://www.ica.se/inkopslistor/*',
+    'https://handla.ica.se/*inkopslist*'
+  ],
 
   // Requests to these URLs are observed to capture the JWT from the Authorization header.
   tokenCaptureUrlPatterns: ['https://*.ica.se/*'],
 
   api: {
     // Returns all shopping lists of the logged in user, including their rows.
-    allListsUrl: 'https://apimgw-pub.ica.se/sverige/digx/mobile/shoppinglistservice/v1/shoppinglists'
+    allListsUrl: 'https://apim-pub.gw.ica.se/sverige/digx/shopping-list/v1/api/list/all',
+    listBaseUrl: 'https://apim-pub.gw.ica.se/sverige/digx/shopping-list/v1/api/list'
   }
 };
 

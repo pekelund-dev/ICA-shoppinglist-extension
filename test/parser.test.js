@@ -27,14 +27,31 @@ test('parses multipliers', () => {
   assert.deepEqual(pick(parseLine('Bananer x 6')), { name: 'Bananer', quantity: 6, unit: null });
 });
 
-test('strips bullets, checkboxes and notes', () => {
+test('strips bullets and checkboxes while preserving parenthetical details', () => {
   assert.equal(parseLine('- 2 st gul lök').name, 'gul lök');
   assert.equal(parseLine('• Smör').name, 'Smör');
   assert.equal(parseLine('[ ] Kaffe').name, 'Kaffe');
   assert.equal(parseLine('1. 2 dl mjölk').name, 'mjölk');
   const item = parseLine('2 klyftor vitlök (pressade)');
-  assert.deepEqual(pick(item), { name: 'vitlök', quantity: 2, unit: 'klyfta' });
+  assert.deepEqual(pick(item), { name: 'vitlök (pressade)', quantity: 2, unit: 'klyfta' });
   assert.equal(item.note, 'pressade');
+});
+
+test('preserves parenthetical package details in shopping-list item names', () => {
+  const text = [
+    '- Ekologisk mjölk (1 liter)',
+    '- Ägg (12-pack)',
+    '- Mellanrostat kaffe',
+    '- Skivat rågbröd',
+    '- Svenskt smör (normalsaltat)'
+  ].join('\n');
+  assert.deepEqual(parseItems(text).map((item) => item.name), [
+    'Ekologisk mjölk (1 liter)',
+    'Ägg (12-pack)',
+    'Mellanrostat kaffe',
+    'Skivat rågbröd',
+    'Svenskt smör (normalsaltat)'
+  ]);
 });
 
 test('does not treat a lone unit-like word as a unit', () => {
